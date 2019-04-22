@@ -122,7 +122,41 @@ def SRTF_scheduling(process_list):
     return scheduled_process, average_waiting_time
 
 def SJF_scheduling(process_list, alpha):
-    return (["to be completed, scheduling SJF without using information from process.burst_time"],0.0)
+    current_time = 0
+    waiting_time = 0
+    current_processing_queue = []
+    scheduled_process = []
+    to_be_processed = copy.deepcopy(process_list)
+    end_time = end_simulation_time(process_list)
+
+    expected_burst_time = init_expected_burst_time(to_be_processed, initial_guess=5)
+
+    while current_time < end_time:
+        while to_be_processed.__len__() > 0:
+            tba_process = to_be_processed[0]
+            process_arrival_time = tba_process.arrive_time
+            if process_arrival_time <= current_time:
+                process_id = tba_process.id
+                tba_process.expected_burst_time = expected_burst_time[process_id]
+                current_processing_queue.append(tba_process)
+                to_be_processed.pop(0)
+            else:
+                break
+
+        if current_processing_queue.__len__() > 0:
+            current_processing_queue = sorted(current_processing_queue, key=lambda process: process.expected_burst_time)
+            current_process = current_processing_queue.pop(0)
+            waiting_time = waiting_time + (current_time - current_process.last_scheduled_time)
+            scheduled_process.append((current_time, current_process.id))  # processing
+            current_time += current_process.burst_time
+            process_id = current_process.id
+            expected_burst_time[process_id] = find_expected_burst_time(alpha, current_process.burst_time, current_process.expected_burst_time)
+        else:
+            current_time += 1
+
+    average_waiting_time = waiting_time / float(len(process_list))
+    return scheduled_process, average_waiting_time
+
 
 
 def read_input():
