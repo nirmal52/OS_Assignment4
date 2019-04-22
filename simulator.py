@@ -1,18 +1,8 @@
-'''
-CS5250 Assignment 4, Scheduling policies simulator
-Sample skeleton program
-Input file:
-    input.txt
-Output files:
-    FCFS.txt
-    RR.txt
-    SRTF.txt
-    SJF.txt
+''' CS 5250 Assignment 4
+A0191445A
 '''
 import sys
 import copy
-
-import sys
 
 input_file = 'input.txt'
 
@@ -22,9 +12,10 @@ class Process:
         self.id = id
         self.arrive_time = arrive_time
         self.burst_time = burst_time
+        self.last_scheduled_time=arrive_time
     #for printing purpose
     def __repr__(self):
-        return ('[id %d : arrival_time %d,  burst_time %d]'%(self.id, self.arrive_time, self.burst_time))
+        return ('[id %d : arrive_time %d,  burst_time %d]'%(self.id, self.arrive_time, self.burst_time))
 
 def FCFS_scheduling(process_list):
     #store the (switching time, proccess_id) pair
@@ -43,6 +34,22 @@ def FCFS_scheduling(process_list):
 #Input: process_list, time_quantum (Positive Integer)
 #Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 #Output_2 : Average Waiting Time
+def end_simulation_time(process_list):
+    n = len(process_list)
+    last_process = process_list[n-1]
+    end_time = last_process.arrive_time + last_process.burst_time
+    return end_time+20
+
+def append_schedules(scheduled_process,current_time, process_id):
+    n = len(scheduled_process)
+    if n > 0:
+        last_schedule = scheduled_process[n-1]
+        previous_process = last_schedule[1]
+        if process_id != previous_process:
+            scheduled_process.append((current_time, process_id))
+    else:
+        scheduled_process.append((current_time, process_id))
+
 def RR_scheduling(process_list, time_quantum ):
     current_time = 0
     waiting_time = 0
@@ -85,6 +92,7 @@ def RR_scheduling(process_list, time_quantum ):
 
     average_waiting_time = waiting_time / float(len(process_list))
     return scheduled_process, average_waiting_time
+
 def SRTF_scheduling(process_list):
     current_time = 0
     waiting_time = 0
@@ -121,6 +129,18 @@ def SRTF_scheduling(process_list):
     average_waiting_time = waiting_time / float(len(process_list))
     return scheduled_process, average_waiting_time
 
+def init_expected_burst_time(to_be_processed, initial_guess):
+    expected_burst_time = {}
+    for process in to_be_processed:
+        expected_burst_time[process.id] = initial_guess
+    return expected_burst_time
+
+
+
+def find_expected_burst_time(alpha,actual_burst_time,predicted_burst_time):
+    expected_burst_time = (alpha*actual_burst_time) + ((1-alpha) * predicted_burst_time)
+    return expected_burst_time
+
 def SJF_scheduling(process_list, alpha):
     current_time = 0
     waiting_time = 0
@@ -156,7 +176,6 @@ def SJF_scheduling(process_list, alpha):
 
     average_waiting_time = waiting_time / float(len(process_list))
     return scheduled_process, average_waiting_time
-
 
 
 def read_input():
